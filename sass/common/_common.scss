@@ -1,0 +1,52 @@
+* {
+    scroll-behavior: unset;
+    padding: 0;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+ul,ol {
+    list-style-type: none;
+}
+
+h1,h2,h3,h4,h5,h6,p {
+    line-height: 0.8px;
+}
+
+
+.header{
+    h3{
+        @include fonts(lato,700,28px,$secordary);
+        text-transform: uppercase;   
+        padding-bottom: 18px;  
+        position: relative;
+        &::after{
+            content: "";
+            position: absolute;
+            top: 37px;
+            left: 52px;
+            width: 90px;
+            height: 1px;
+            background-color: rgba(29, 25, 25, 0.2);
+        }   
+    }
+
+    i{
+        color: rgba(29, 25, 25, 0.2);
+        font-size: 25px;
+        position: relative;
+        &::after{
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: 52px;
+            width: 90px;
+            height: 1px;
+            background-color: rgba(29, 25, 25, 0.2);
+        }
+    }
+    
+}

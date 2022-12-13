@@ -1,0 +1,430 @@
+"use strict";
+
+//const SCORE_FILES = ['culture', 'themeMixed', 'sport', 'nature', 'Technology','numbers','specialChar','mathChar','easyText','mediumText','misspelled','loanwords',
+//    'legal','medical','business','coding','Spanish','French', 'time_60', 'time_180', 'time_300', 'time_600'];
+
+//const SCORE_FILES = ['easyText', 'mediumText', 'difficultText', 'tricky', 'numbers', 'loanwords', 'themed',
+//    'medical', 'legal', 'coding', 'mathChar','Spanish','French'];
+
+//const SCORE_SECTIONS = [0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3];
+
+const LAST_PROMO = "lastPromo";
+const EASY_DATE = "easyDate";
+const EASY_PROMO = "easy_promo";
+const TRAINER_PROMO = "trainer_promo";
+const BENCHMARK_PROMO = "bench_promo";
+const CERTIFICATE_PROMO = "certificate_promo";
+const CHALLENGE_PROMO = "challenge_promo";
+
+const SCORE_FILES = [
+    [
+        { label: "Easy Text", file: "easyText" },
+        { label: "Medium Text", file: "mediumText" },
+        { label: "Hard Text", file: "difficultText" },
+        { label: "Benchmark", file: "benchmark" }
+    ],
+    [
+        { label: "Tricky Spelling", file: "tricky" },
+        { label: "Blind Typing", file: "blindText" },
+        { label: "Story Typing", file: "story" },
+        //{label: 'Numbers & Symbols', file: 'numbers'}, {label: 'Loanwords', file: 'loanwords'},
+        { label: "Themed Text", file: "themed" },
+    ],
+    [
+        { label: "Medical", file: "medical" },
+        { label: "Legal", file: "legal" },
+        { label: "Business", file: "business" },
+        { label: "Coding", file: "coding" },
+        { label: "Math", file: "mathChar" },
+    ],
+    [
+        { label: "Spanish", file: "Spanish" },
+        { label: "French", file: "French" },
+    ],
+    [
+        { label: "Reading", file: "reading" },
+        { label: "Transscript", file: "transscript" },
+        { label: "Dictation", file: "dictation" },
+        { label: "Certificate", file: "certificate" },
+    ]
+];
+
+let PLAIN_SCORE_FILES = [];
+for (let i = 0; i < SCORE_FILES.length; i++) {
+    for (let j = 0; j < SCORE_FILES[i].length; j++) {
+        PLAIN_SCORE_FILES.push(SCORE_FILES[i][j].file);
+    }
+}
+
+//*
+function fillScores() {
+
+    if (saveTry) {
+        saveTry();
+    }
+
+    let data = localStorage.getItem("try5");
+    let dataArray = {};
+    if (data) dataArray = JSON.parse(data);
+    else return;
+
+    let scoreArray = [];
+
+    for (let i = 0; i < dataArray.text.length; i++) {
+        for (let sct = 0; sct < SCORE_FILES.length; sct++) {
+            for (let itm = 0; itm < SCORE_FILES[sct].length; itm++) {
+                if (dataArray.text[i].toLowerCase() === SCORE_FILES[sct][itm].file.toLowerCase()) {
+                    if (!scoreArray[SCORE_FILES[sct][itm].file]) {
+                        scoreArray[SCORE_FILES[sct][itm].file] = [];
+                    }
+                    scoreArray[SCORE_FILES[sct][itm].file].push({ avg: dataArray.speed[i], top: dataArray.speed[i] });
+                }
+            }
+        }
+    }
+
+    for (let sct = 0; sct < SCORE_FILES.length; sct++) {
+        for (let itm = 0; itm < SCORE_FILES[sct].length; itm++) {
+            let obj = {};
+            let top = 0;
+            let avg = 0;
+
+            if (!scoreArray[SCORE_FILES[sct][itm].file]) {
+                obj.count = 0;
+            } else {
+                obj.count = scoreArray[SCORE_FILES[sct][itm].file].length;
+            }
+
+            for (let j = 0; j < obj.count; j++) {
+                top = Math.max(top, scoreArray[SCORE_FILES[sct][itm].file][j].top);
+                avg += scoreArray[SCORE_FILES[sct][itm].file][j].avg;
+            }
+
+            if (obj.count > 0) {
+                avg = Math.round(avg / obj.count);
+            } else {
+                top = "n/a";
+                avg = "";
+                obj.count = "";
+            }
+
+            obj.top = top;
+            obj.avg = avg;
+
+            _scores[SCORE_FILES[sct][itm].file] = obj;
+        }
+    }
+}
+
+
+//*
+function getScoreSymbolImg(txt) {
+    let str = "";
+    let addName = "";
+    if (!_isDarkTheme) {
+        addName = "-light";
+    }
+
+    switch (txt) {
+        case "easyText":
+            str = `<img src="forms/img/icon_easy` + addName + `.svg" alt="easy" />`;
+            break;
+        case "mediumText":
+            str = `<img src="forms/img/icon_medium` + addName + `.svg" alt="medium" />`;
+            break;
+        case "difficultText":
+            str = `<img src="forms/img/icon_hard` + addName + `.svg" alt="hard" />`;
+            break;
+
+        case "tricky":
+            str = `<i class="fas fa-spell-check fa-5x" style="margin-top: 7px"></i>`;
+            break;
+        case "blindText":
+            str = `<img src="forms/img/icon_blind` + addName + `.svg" alt="blind"  style="margin-top: 25px" />`;
+            break;
+        case "story":
+            str = `<i class="fas fa-quote-left fa-5x" style="margin-top: 5px"></i>`;
+            break;
+        case "themed":
+            str = `<i class="fas fa-football-ball fa-3x"></i><i class="fas fa-film fa-3x" style="position: relative;margin-left: 50px;margin-top: -10px;"></i>`;
+            break;
+
+        case "certificate":
+            str = `<img src="forms/img/icon_certificate` + addName + `.png" alt="certificate" style="height: 90px;width: auto;margin-left: -38px;margin-top: 0px;"  />`;
+            break;
+
+        case "legal":
+            str = `<img src="forms/img/icon_legal` + addName + `.svg" alt="legal" style="height: 90px;width: auto;margin-left: 25px;margin-top: -10px;"  />`;
+            break;
+        case "medical":
+            str = `<i class="fas fa-stethoscope fa-5x" style="margin-top: 5px;"></i>`;
+            break;
+        case "business":
+            str = `<i class="fas fa-briefcase fa-5x" style="margin-top: 5px;margin-left: 5px;"></i>`;
+            break;
+        case "coding":
+            str = `<i class="fas fa-code fa-5x" style="margin-top: 0px;margin-left: -5px;"></i>`;
+            break;
+
+       
+
+        //more services
+        case "reading":
+            str = `<i class="fas fa-book-reader fa-5x" style="margin-top: 0px;margin-left: 5px;"></i>`;
+            break;
+        case "transscript":
+            str = `<i class="fas fa-headphones-alt fa-5x" style="margin-top: 0px;margin-left: 10px;"></i>`;
+            break;
+        case "dictation":
+            str = `<i class="fas fa-microphone-alt fa-5x" style="margin-top: 0px;margin-left: 20px;"></i>`;
+            break;
+        
+    }
+
+    return str;
+}
+
+
+//*
+function writeScoreSymbolsItem(title, txt, time, lastFileName) {
+    let scoreStr = txt;
+
+    /* 
+    _scores[scoreStr].top = 35;
+    _scores[scoreStr].avg = 25;
+    _scores[scoreStr].count = 5;
+    /* */
+
+    let str = "";
+    let tileCls = "";
+
+    str += `<div class='item-container'>`;
+    console.log("_scores");
+    console.log(_scores);
+    console.log("txt");
+    console.log(txt)
+
+
+    if ((_scores[scoreStr].count == 0) || (_scores[scoreStr].count == "")) {
+
+        tileCls = "symbol-item place-back";
+
+        if (title === "Benchmark") {
+            title += `<p style="font-size:16px">Compare Your Skills</p>`;
+            tileCls += " symbol-item-bench";
+        }
+
+        str += `<div class='` + tileCls + `'  onclick="onScoreStartClick('` +
+            txt +
+            `.txt', ` +
+            time +
+            `);">`;
+
+        str += `<div class='top-text'>` + title + `</div>` +
+            `<div class='center-image'>` + getScoreSymbolImg(txt) + `</div>` +
+            `<div class='avg-container'><div class='avg'>Start</div></div>`;
+        //str += `<div class="play-btn">Start</div>`;
+    } else {
+
+        tileCls = "symbol-item result-back";
+
+        if (title === "Benchmark") {
+            tileCls += " symbol-item-bench";
+        }
+
+        str += `<div class='` + tileCls + `'  onclick="onScoreStartClick('` +
+            txt +
+            `.txt', ` +
+            time +
+            `);">`;
+
+        str += `<div class='top-text'>` + title + `</div>` +
+            `<div class='center-container'><div class='top-label'>BEST</div><div class='best-text'>` + _scores[scoreStr].top + `</div><div>WPM</div></div>` +
+            `<div class='count'>x` + _scores[scoreStr].count + `</div>` +
+            `<div class='avg-container'><div class='avg'>Start</div></div>`;
+        //str += `<div class="play-btn">Start</div>`;
+    }
+
+    str += `</div>`;
+    str += `</div>`;
+
+    return str;
+}
+
+
+//*
+function writeScoreSymbols(titleArr, textArr, timeArr, lastFileName) {
+    let str = `<div class='result-symbol-container'>`;
+    for (let i = 0; i < titleArr.length; i++) {
+        str += writeScoreSymbolsItem(titleArr[i], textArr[i], timeArr[i], lastFileName);
+    }
+    str += "</div>"
+    return str;
+}
+
+function onScoreStartClick(txt, time) {
+
+    switch (txt) {
+        case "benchmark.txt":
+            window.location = "/benchmark.html?from=result";
+            break;
+        case "reading.txt":
+            window.location = "http://www.example.com";
+            break;
+        case "transscript.txt":
+            window.location = "https://gotranscript.com/";
+            break;
+        case "dictation.txt":
+            window.location = "https://www.speechace.com/";
+            break;
+        case "certificate.txt":
+            window.location = "/certificate.html";
+            break;
+        default:
+            sessionStorage.setItem("text_name", txt);
+            sessionStorage.setItem("timer", time);
+            ga("send", "event", "Master benchmarks", "Scorecard Start", "click");
+            window.location = INDEX_URL;
+            break;
+    }
+}
+
+function isToday(num) {
+
+    let dateX = new Date(Number(num));
+    dateX.setHours(0, 0, 0, 0);
+
+    let dateNow = new Date();
+    dateNow.setHours(0, 0, 0, 0);
+
+    return dateX.getTime() === dateNow.getTime();
+}
+
+
+//fill initial URL params
+/*
+const _urlParams = new URLSearchParams(window.location.search);
+
+function getUrlParam(param, initVal) {
+    if (_urlParams.has(param)) {
+        return _urlParams.get(param);
+    } else {
+        return initVal;
+    }
+
+}
+
+let _gwpm = getUrlParam("gwpm", "--");
+let _acc = getUrlParam("acc", "--");
+let _err = getUrlParam("err", "--");
+let _nwpm = getUrlParam("nwpm", "--");
+let _textfile = getUrlParam("textfile", "");
+let _from = getUrlParam("from", "");
+let _date = new Date().getTime();
+let _theme = getUrlParam("theme", "light");
+
+if (_theme === "dark"){
+    document.documentElement.setAttribute('data-theme', 'dark');
+}
+*/
+
+
+//show promos
+function showPromo() {
+
+
+    let typeTest = new URLSearchParams(window.location.search).get("textfile");
+    let time = new URLSearchParams(window.location.search).get("time");
+    let wpm = parseInt(new URLSearchParams(window.location.search).get("gwpm"));
+
+    //try to show challenge promo if textfile=mediumText.txt and time=1min and wpm > 70
+    if (typeTest === "mediumText.txt" && (time === "60" && wpm >= 70)){
+        document.getElementById(CHALLENGE_PROMO).style.display = "block";
+        ga('send', 'event', 'Master benchmarks', 'ChallengePromo', 'view');
+		return;
+    }
+
+    let isTestProfessional = typeTest === "legal.txt" || typeTest === "medical.txt" || typeTest === "business.txt" || typeTest === "coding.txt";
+    if (isTestProfessional) {
+        document.getElementById(CERTIFICATE_PROMO).style.display = "block";
+        localStorage.setItem(CERTIFICATE_PROMO, String(Date.now()));
+		
+		ga('send', 'event', 'Master benchmarks', 'CertificatePromo', 'view');
+        return ;
+    }
+
+    let easyDate = localStorage.getItem(EASY_DATE);
+    if (!easyDate) {
+        easyDate = 0;
+    }
+
+    let lastPromo = localStorage.getItem(LAST_PROMO);
+
+    let nwpm = parseInt(_nwpm);
+    if (isNaN(nwpm)) {
+        nwpm = 0;
+    }
+
+    if ((nwpm < 20) && (_acc < 80) && (_textfile !== "easyText.txt") && (!isToday(easyDate)) || (nwpm == 0)) {
+        document.getElementById(EASY_PROMO).style.display = "block";
+        localStorage.setItem(EASY_DATE, String(Date.now()));
+
+        ga('send', 'event', 'Master benchmarks', 'EasyPromo', 'view');
+        return;
+    }
+
+    //lastPromo = 0;
+
+    if (lastPromo != BENCHMARK_PROMO){
+        document.getElementById(BENCHMARK_PROMO).style.display = "block";
+        localStorage.setItem(LAST_PROMO, BENCHMARK_PROMO);
+        
+        ga('send', 'event', 'Master benchmarks', 'BenchmarkPromo', 'view');
+    }
+    else{
+        document.getElementById(TRAINER_PROMO).style.display = "block";
+        localStorage.setItem(LAST_PROMO, TRAINER_PROMO);
+
+        // Generate "x times faster" text
+        let timesStr = "";
+        let ratio = 0.0;
+        let fasterStr;
+        let prcStr = "%";
+        if (_nwpm == 0) {
+            ratio = 58.0;
+        } else {
+            ratio = 58.0 / nwpm;
+        }
+
+        if (ratio <= 1) {
+            timesStr = "10";
+            fasterStr = "faster*";
+        } else if (ratio < 2) {
+            timesStr = Math.round((ratio - 1.0) * 100.0);
+            //timesStr = Math.round((ratio - 1.0) * 100.0);
+            fasterStr = "faster*";
+        } else if (ratio < 10) {
+            timesStr = Math.round(ratio * 10) / 10;
+            fasterStr = "times faster*";
+            prcStr = "";
+        } else {
+            timesStr = Math.round(ratio);
+            fasterStr = "times faster*";
+            prcStr = "";
+        }
+
+        document.getElementById("times_str").firstChild.textContent = timesStr;
+        document.getElementById("faster_str").textContent = fasterStr;
+        if (prcStr === ""){
+            document.getElementById("prc_str").style.display = "none";
+            document.getElementById("faster_str").style.fontSize = "16px";
+            document.getElementById("faster_str").style.marginTop = "3px";
+        }
+
+        ga('send', 'event', 'Master benchmarks', 'TrainerPromo', 'view');
+    }
+}
+
+let _scores = [];
+
+fillScores();

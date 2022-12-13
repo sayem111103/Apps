@@ -1,0 +1,62 @@
+#fact{
+    @include pGap(75px,112px,0,0);
+    .header{
+        h3{
+            @include fonts(lato,700,28px,$secordary);
+            text-transform: uppercase;   
+            padding-bottom: 18px;  
+            position: relative;
+            &::after{
+                content: "";
+                position: absolute;
+                top: 37px;
+                left: 52px;
+                width: 90px;
+                height: 1px;
+                background-color: rgba(255, 255, 255, 0.6);
+            }   
+        }
+    
+        i{
+            color: #fff;
+            font-size: 25px;
+            position: relative;
+            &::after{
+                content: "";
+                position: absolute;
+                top: 10px;
+                left: 52px;
+                width: 90px;
+                height: 1px;
+                background-color: rgba(255, 255, 255, 0.6);
+            }
+        }
+    }    
+
+    .fact-item{
+        margin-top: 30px;
+        .fact-icon{
+            width: 80px;
+            height: 80px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            i{
+                color: #fff;
+                font-size: 25px;
+            }
+        }
+
+        .fact-content{
+            margin-top: 50px;
+            h4{
+                @include fonts(open sans,600,45px,#fff);
+            }
+    
+            p{
+                @include fonts(open sans,400,14px,#fff);
+                padding-top: 25px;
+                text-transform: uppercase;
+            }
+        }
+    }
+}

@@ -1,0 +1,88 @@
+#footer{
+    padding: 50px 0;
+    background-color: #010305;
+    .footer-left{
+        padding-left: 115px;
+        h4{
+            margin-top: 30px;
+            @include fonts(lato,700,26px,#fff);
+            span{
+                color: $secordary;
+            }
+        }
+
+        p{
+            @include fonts(lato,100,12px,#fff);
+            line-height: 22px;
+            padding-top: 20px;
+        }
+    }
+
+    .footer-middle{
+        padding-left: 115px;
+        h4{
+            margin-top: 30px;
+            @include fonts(lato,700,18px,#fff);            
+            padding-bottom: 20px;
+            text-transform: capitalize;
+        }
+
+        form{
+            position: relative;
+            input{
+                width: 250px;
+                border: 1px solid #fff;
+                @include pGap(10px,10px,10px,0);
+                background-color: #010305;
+                @include fonts(lato,100,14px,#fff);
+                &:focus-visible{
+                    outline: none;
+                }
+            }
+            button{
+                background-color: transparent;
+                border: 1px solid #fff;
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                right: 0;
+                border: none;
+                i{
+                    color: #fff;
+                }
+            }
+        }
+
+        p{
+            padding-top: 15px;
+            padding-right: 18px;
+            @include fonts(lato,100,12px,#fff);
+            line-height: 20px;
+        }
+    }
+
+    .footer-right{
+        padding-left: 115px;
+        h4{
+            margin-top: 30px;
+            @include fonts(lato,700,18px,#fff);            
+            padding-bottom: 18px;
+            text-transform: capitalize;
+        }
+
+        .footer-item{
+            .footer-txt{
+                padding-right: 30px;
+                a{
+                    padding-bottom: 15px;
+                    text-transform: capitalize;
+                    @include fonts(Open sans,400,14px,#fff);
+                    transition: all linear .3s;
+                    &:hover{
+                        color: $secordary;
+                    }                  
+                }
+            }
+        }
+    }
+}

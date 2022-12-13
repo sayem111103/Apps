@@ -1,0 +1,845 @@
+"use strict";
+
+let color = Chart.helpers.color;
+
+let _isSaveTry = false;
+let _dataTryArray = [];
+
+//best data index
+let _bestIdx = -1;
+
+//max data count
+let _dataCnt = 0;
+
+//items in secont X axe (for slow-pro labels)
+let _x2Axe = [];
+//xMin and xMax for slow-pro labels
+let _x2Min = 0;
+let _x2Max = 0;
+
+//js screen width
+let _screenW = 0;
+
+//hide slow-pro width limis
+let _proHide = 450;
+
+//init default colors
+let _boxColor = "#BBF0E3";
+let _boxLabel = "#15C39A";
+let _boxLabelFirst = "#15C39A";
+let _boxColorFirst = "#90E9D4";
+let _boxBorder = "#15C39A";
+let _boxBorderFirst = "#13A784";
+let _axesLabelColor = "#6A9FB2";
+let _axesLabelColorFirst = "#2C6479";
+let _fastSlowColor = "#1794AD";
+let _fastSlowFontStyle = "normal";
+let _lineDashColor = "#bedae3";
+
+
+//init colors depending of the theme
+function initColors(){
+
+    if (_isDarkTheme){
+        _boxColor = "#5FF3CF";
+        _boxLabel = "#D1FCF1"
+        _boxLabelFirst = "#fff";
+        _boxColorFirst = "#ADFFEA";
+        _boxBorder = "#fff";
+        _boxBorderFirst = "#fff";
+        _axesLabelColor = "rgba(255,255,255,0.7)";
+        _axesLabelColorFirst = "rgba(255,255,255,0.7)";
+        _fastSlowColor = 'rgba(0,0,0,0)';
+        _fastSlowFontStyle = "bold";
+        _lineDashColor = "#dcdedf";
+    }
+}
+
+// draws a rectangle with a rounded top
+Chart.helpers.drawRoundedTopRectangle = function (ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    // top right corner
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    // bottom right	corner
+    ctx.lineTo(x + width, y + height);
+    // bottom left corner
+    ctx.lineTo(x, y + height);
+    // top left	
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+
+};
+
+Chart.elements.RoundedTopRectangle = Chart.elements.Rectangle.extend({
+    draw: function () {
+        var ctx = this._chart.ctx;
+        var vm = this._view;
+        var left, right, top, bottom, signX, signY, borderSkipped;
+        var borderWidth = vm.borderWidth;
+
+        if (!vm.horizontal) {
+            // bar
+            left = vm.x - vm.width / 2;
+            right = vm.x + vm.width / 2;
+            top = vm.y;
+            bottom = vm.base;
+            signX = 1;
+            signY = bottom > top ? 1 : -1;
+            borderSkipped = vm.borderSkipped || 'bottom';
+        } else {
+            // horizontal bar
+            left = vm.base;
+            right = vm.x;
+            top = vm.y - vm.height / 2;
+            bottom = vm.y + vm.height / 2;
+            signX = right > left ? 1 : -1;
+            signY = 1;
+            borderSkipped = vm.borderSkipped || 'left';
+        }
+
+        // Canvas doesn't allow us to stroke inside the width so we can
+        // adjust the sizes to fit if we're setting a stroke on the line
+        if (borderWidth) {
+            // borderWidth shold be less than bar width and bar height.
+            var barSize = Math.min(Math.abs(left - right), Math.abs(top - bottom));
+            borderWidth = borderWidth > barSize ? barSize : borderWidth;
+            var halfStroke = borderWidth / 2;
+            // Adjust borderWidth when bar top position is near vm.base(zero).
+            var borderLeft = left + (borderSkipped !== 'left' ? halfStroke * signX : 0);
+            var borderRight = right + (borderSkipped !== 'right' ? -halfStroke * signX : 0);
+            var borderTop = top + (borderSkipped !== 'top' ? halfStroke * signY : 0);
+            var borderBottom = bottom + (borderSkipped !== 'bottom' ? -halfStroke * signY : 0);
+            // not become a vertical line?
+            if (borderLeft !== borderRight) {
+                top = borderTop;
+                bottom = borderBottom;
+            }
+            // not become a horizontal line?
+            if (borderTop !== borderBottom) {
+                left = borderLeft;
+                right = borderRight;
+            }
+        }
+
+        // calculate the bar width and roundess
+        var barWidth = Math.abs(left - right);
+        var roundness = this._chart.config.options.barRoundness || 0.5;
+        var radius = barWidth * roundness * 0.5;
+
+        // keep track of the original top of the bar
+        var prevTop = top;
+
+        // move the top down so there is room to draw the rounded top
+        top = prevTop + radius;
+        var barRadius = top - prevTop;
+
+        ctx.beginPath();
+        ctx.fillStyle = vm.backgroundColor;
+        ctx.strokeStyle = vm.borderColor;
+        ctx.lineWidth = borderWidth;
+
+        // draw the rounded top rectangle
+        Chart.helpers.drawRoundedTopRectangle(ctx, left, (top - barRadius + 1), barWidth, bottom - prevTop, barRadius);
+
+        ctx.fill();
+        if (borderWidth) {
+            ctx.stroke();
+        }
+
+        // restore the original top value so tooltips and scales still work
+        top = prevTop;
+    },
+});
+
+Chart.defaults.roundedBar = Chart.helpers.clone(Chart.defaults.bar);
+
+Chart.controllers.roundedBar = Chart.controllers.bar.extend({
+    dataElementType: Chart.elements.RoundedTopRectangle
+});
+
+
+function createConfig(dataArray, greenGradient, blueGradient, backGradient) {
+    var pointStyle = "bar";
+    var pointRadius = 0;
+
+
+    //add empty last val
+    if (_screenW >= _proHide){
+        dataArray.speed.push(0);
+        dataArray.date.push("");
+        dataArray.gspeed.push(0);
+        dataArray.err.push(0);
+        dataArray.text.push("");
+    }
+
+    //calculate max speed and maxY values
+    var maxY = 85;
+    var maxSpeed = 0;
+    for (var i = 0; i < dataArray.speed.length; i++) {
+        if (dataArray.speed[i] > maxSpeed) maxSpeed = dataArray.speed[i];
+    }
+    if (maxSpeed >= 45) {
+        if (maxSpeed <= 80) maxY = 105;
+        else maxY = 105 + (maxSpeed - 80) * 1.4;
+    }
+    //if ((maxY % 5) > 0) maxY += 5 - (maxY % 5);
+    // calculate Y axes gridlines
+    var lblWidth = 0;
+    var lblWidthArray = [];
+
+    for (var i = 0; i < maxY; i++) {
+        if (getWMPLabel(maxY - i) == "") lblWidthArray.push(0);
+        else lblWidthArray.push(lblWidth);
+    }
+
+    //show Average Typist try <=  _dataCnt
+    var backColorArray = [];
+    var borderColorArray = [];
+    var labelsColorArray = [];
+    var speedArray = [];
+    var xLabels = [];
+    let axesXLabelColorArray = [];
+
+    //hightlight only last item then slow-pro hided
+    let endLimit = 2;
+    if (_screenW < _proHide){
+        endLimit = 1;
+    }
+
+    for (i = 0; i < Math.max(_dataCnt, dataArray.speed.length); i++) {
+        if (i >= (dataArray.speed.length - endLimit)) {
+            backColorArray.push(_boxColorFirst);
+            labelsColorArray.push(_boxLabelFirst);
+            borderColorArray.push(_boxBorderFirst);
+            axesXLabelColorArray.push(_axesLabelColorFirst);
+        } else {
+            backColorArray.push(_boxColor);
+            labelsColorArray.push(_boxLabel);
+            borderColorArray.push(_boxBorder);
+            axesXLabelColorArray.push(_axesLabelColor);
+        }
+        speedArray.push(dataArray.speed[i]);
+        xLabels.push(dataArray.date[i]);
+    }
+
+
+    //add new position for small values
+    let compare = _dataCnt;
+    let pos = 0;
+
+    if (_screenW <= _proHide){
+        compare = _dataCnt - 1;
+        pos = 0;
+    }
+
+    if (dataArray.speed.length <= compare) {
+        backColorArray[pos] = blueGradient;
+        borderColorArray[pos] = "#808080";
+
+        speedArray[pos] = 36;
+        //speedArray[2] = 57;
+        xLabels[pos] = ["Average", "Typist"];
+        //xLabels[2] = ['Touch','Typist'];
+        _bestIdx += 1;
+
+        for (i = pos; i < compare; i++) {
+            if (dataArray.speed.length > i) {
+                speedArray[i + 1] = dataArray.speed[i];
+                xLabels[i + 1] = dataArray.date[i];
+            }
+        }
+    }
+
+    return {
+        type: "roundedBar",
+        data: {
+            labels: xLabels,
+            datasets: [
+                {
+                    label: "Typing Speed",
+                    data: speedArray,
+                    backgroundColor: backColorArray,
+                    borderWidth: 1,
+
+                    //border of data bars
+                    borderColor: borderColorArray,
+                    borderRadius: 20,
+                    pointStyle: pointStyle,
+                    pointRadius: pointRadius,
+                    pointBorderColor: "rgb(0, 0, 255)",
+                    lineTension: 0,
+                    borderSkipped: false,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: {
+                display: false,
+                position: "bottom",
+                labels: {
+                    usePointStyle: true,
+                },
+            },
+            hover: {
+                animationDuration: 0,
+            },
+
+            //draw best index crown
+            animation: {
+                duration: 2000,
+                onComplete: function (animation) {
+                    var chartInstance = this.chart;
+                    var ctx = chartInstance.ctx;
+                    var height = chartInstance.controller.boxes[0].bottom;
+                    ctx.textAlign = "center";
+                    Chart.helpers.each(this.data.datasets.forEach(function (dataset, i) {
+                        var meta = chartInstance.controller.getDatasetMeta(i);
+                        Chart.helpers.each(meta.data.forEach(function (bar, index) {
+                            if (index === _bestIdx) {
+                                ctx.font = '600 23px "Font Awesome 5 Free"';
+                                ctx.fillStyle = _boxLabel;
+                                ctx.fillText("\uf521", bar._model.x, bar._model.y - 33);
+                            }
+                        }), this)
+                    }), this);
+                }
+            },
+
+
+            plugins: {
+                datalabels: {
+
+                    //color of labels above bars
+                    color: labelsColorArray,
+                    anchor: "end",
+                    align: "end",
+                    offset: -5,
+                    font: {
+                        size: 25,
+                        family: "Flexo-BoldIt"
+                    },
+                    formatter: function (value, context) {
+                        if (value == 0) return "";
+                        else return value;
+                    }
+                },
+            },
+
+            scales: {
+                xAxes: [
+                    {
+                        id: "X",
+                        labels:  xLabels,
+                        display: true,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.8,
+                        scaleLabel: {
+                            display: false,
+                        },
+                        gridLines: {
+                            display: false,
+                        },
+                        ticks: {
+                            fontColor: axesXLabelColorArray,
+                            //fontColor: _axesLabelColor,
+                            //fontFamily: 'Flexo',
+                            //fontStyle: 'normal',
+                            //fontColor: labelsColorArray,
+                            //fontColor:['rgba(200,0,0,0.8)','rgba(44,44,44,0.8)','rgba(44,44,44,0.8)','rgba(178,31,31,1)','rgba(44,44,44,0.8)','rgba(44,44,44,0.8)','rgba(44,44,44,0.8)','rgba(44,44,44,0.8)'],
+                            //fontStyle: 'bold',
+                            callback: function (tickValue, index, ticks) {
+                                return tickValue;
+                            },
+                        },
+                    },
+
+                    {
+                        id: "X2",
+                        type: "category",
+                        labels: _x2Axe,
+                        display: false,
+                        gridLines: {
+                            display: false,
+                        },
+                    },
+                ],
+
+                yAxes: [
+                    /*
+                    {
+                    id: 'A',
+                    type: 'linear',
+                    position: 'left',
+                    display: true,
+                    scaleLabel: {
+                        display: false
+                    },
+                    gridLines: {
+                        display: true,
+                        drawBorder: false,
+                        drawTicks: false,
+                        lineWidth: lblWidthArray,
+                    },
+                    ticks: {
+                        min: 0,
+                        max: maxY,
+                        stepSize: 1,
+                        fontColor: '#156A89',
+                        fontStyle: 'bold',
+                        padding: -5,
+                        callback: function(value, index, values) {
+                           return getClassLabel(maxY, value);
+                        }
+                    }
+                },
+                    /**/
+                    {
+                        id: "B",
+                        type: "linear",
+                        position: "right",
+                        display: true,
+                        scaleLabel: {
+                            display: false,
+                        },
+                        gridLines: {
+                            display: false,
+                            drawBorder: false,
+                            drawTicks: false,
+                            lineWidth: lblWidthArray,
+                        },
+                        ticks: {
+                            min: 0,
+                            max: maxY,
+                            stepSize: 1,
+                            fontColor: _axesLabelColor,
+                            //fontStyle: 'bold',
+                            padding: 2,
+                            callback: function (value, index, values) {
+                                return getWMPLabel(value);
+                            },
+                        },
+                    },
+                ],
+            },
+            title: {
+                display: false,
+            },
+            tooltips: {
+                enabled: true,
+                callbacks: {
+                    label: function (tooltipItem, data) {
+                        return "";
+                    },
+                    title: function (tooltipItem, data) {
+                        //console.log(dataArray.text[tooltipItem[0].index]);
+                        return dataArray.text[tooltipItem[0].index];
+                    },
+                    afterBody: function (tooltipItem, data) {
+                        var str = [];
+                        str.push(tooltipItem[0].label);
+                        str.push("WPM: " + tooltipItem[0].value);
+                        if (dataArray.text[tooltipItem[0].index] != "") {
+                            str.push("Gross typing speed: " + dataArray.gspeed[tooltipItem[0].index]);
+                            str.push("Errors: " + dataArray.err[tooltipItem[0].index]);
+                        }
+                        return str;
+                    },
+                },
+            },
+
+            //get horizontal lines and slow-pro boxes
+            annotation: {
+                annotations: getAnnotations(backGradient),
+            },
+        },
+    };
+}
+
+function getClassLabel(maxY, value) {
+    var str = "";
+    if (value == 16) str = "Slow";
+    if (value == 34) str = "Average";
+    if (value == 52) str = "Fluent";
+
+    if (maxY < 80) {
+        if (value == 64) str = "Fast";
+    } else {
+        if (value == 68) str = "Fast";
+    }
+
+    if (value == 86) str = "Pro";
+
+    str = "";
+    return str;
+}
+
+function getWMPLabel(value) {
+    var str = "";
+    if (value == 25) str = "25";
+    if (value == 45) str = "45";
+    if (value == 65) str = "65";
+    if (value == 85) str = "85";
+
+    return str;
+}
+
+function getTextLabel(val) {
+    var str = "";
+    if (val === "1swetext.txt") str = "Svenska";
+    if (val === "aesop.txt") str = "Aesop";
+    if (val === "astronauts.txt") str = "Astronauts";
+    if (val === "baseball.txt") str = "Baseball";
+    if (val === "colomba.txt") str = "Français";
+    if (val === "cornelia.txt") str = "Español";
+    if (val === "cultural.txt") str = "Português";
+    if (val === "enchanted.txt") str = "Typewriter";
+    if (val === "moschustier.txt") str = "Deutsch";
+    if (val === "multatuli.txt") str = "Nederland";
+    if (val === "norppa.txt") str = "Suomi";
+    if (val === "oz.txt") str = "Wizard of Oz";
+    if (val === "prigione.txt") str = "Italiano";
+    if (val === "sentences.txt") str = "Sentences";
+    if (val === "testtext.txt") str = "Test";
+    if (val === "tiger.txt") str = "Tigers";
+    if (val === "words.txt") str = "Words";
+    if (val === "zebra.txt") str = "Zebra";
+
+    if (str === "") {
+        str = val.substr(0, val.indexOf(".txt"));
+
+        if (str === "culture" || str === "sport" || str === "nature" || str === "Technology" || str === "themeMixed") {
+            str = "themed";
+        }
+    }
+
+    if (
+        str === "Aesop" ||
+        str === "Baseball" ||
+        str === "Astronauts" ||
+        str === "Tigers" ||
+        str === "Wizard of Oz" ||
+        str === "Zebra" ||
+        str === "Typewriter"
+    ) {
+        str = "story";
+    }
+    return str;
+}
+
+//for horizontal lines
+function getAnnotationLine(val){
+    return {
+        type: "line",
+        mode: "horizontal",
+        drawTime: "beforeDatasetsDraw",
+        scaleID: "B",
+        value: val,
+        borderColor: _lineDashColor,
+        borderWidth: 1,
+        borderDash: [5, 5]
+    };
+
+}
+
+//for slow-pro boxes
+function getAnnotationBox(start, end, label){
+    return {
+        //slow
+        type: "box",
+        drawTime: "afterDatasetsDraw",
+        xScaleID: "X2",
+        yScaleID: "B",
+        borderWidth: 0,
+        borderColor: 'rgba(0,0,0,0)',
+        backgroundColor: "#00000000",
+        xMin: _x2Min,
+        xMax: _x2Max,
+        yMin: start,
+        yMax: end,
+        label: {
+            content: label,
+            enabled: true,
+            fontColor: _fastSlowColor,
+            fontSize: "14",
+            yAdjust: 0,
+            fontFamily: "Roboto",
+            fontStyle: _fastSlowFontStyle,
+        }
+    };
+}
+
+function getAnnotations(backGradient){
+
+    let res = [];
+    res.push({
+        //main chart gradient
+        type: "box",
+        drawTime: "beforeDatasetsDraw",
+        yScaleID: "y-axis-0",
+        borderWidth: 2,
+        borderColor: 'rgba(0,0,0,0)',
+        cornerRadius: 100,
+        backgroundColor: backGradient,
+    });
+
+    let lineVals = [25, 45, 65, 85];
+    for (let i = 0; i < lineVals.length; i ++){
+        res.push(getAnnotationLine(lineVals[i]));
+    }
+
+    if (_screenW >= _proHide){
+        let boxStart = [0, 25, 45, 65, 85];
+        let boxEnd = [25, 45, 65, 85, 105];
+        let boxLabels = ["Slow", "Average", "Fluent", "Fast", "PRO"];
+        for (let i = 0; i < boxStart.length; i++){
+            res.push(getAnnotationBox(boxStart[i], boxEnd[i], boxLabels[i]));
+        }
+    }
+
+    return res;
+}
+
+function saveTry() {
+
+    console.log("Save Try!!!");
+     
+	 //show close btn
+	setCloseStorage(true);
+
+    if (_isSaveTry){
+        return _dataTryArray;
+    }
+
+    /* 
+
+    var testData = {
+        "speed": [60, 80, 30, 40, 50, 60, 80, 30, 40, 50, 60, 80, 30, 40, 50],
+        "date": [1567301443000, 1567387843000, 1567474243000, 1569803443000, 1569807043000, 1567301443000, 1567387843000, 1567474243000, 1569803443000, 1569807043000, 1567301443000, 1567387843000, 1567474243000, 1569803443000, 1569807043000],
+        "gspeed": [90, 20, 30, 40, 50, 90, 20, 30, 40, 50, 90, 20, 30, 40, 50],
+        "err": [1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5],
+        "text": ["text1", "text2", "text3", "text4", "text5", "text6", "text7", "text8", "text9", "text10", "text11", "text12", "text13", "text14", "text15"]
+    };
+    /**/
+
+
+
+    /* 
+    var testStr = JSON.stringify(testData);
+
+    localStorage.setItem('try5', testStr);
+    /**/
+
+    //localStorage.clear();
+
+    //save attempt
+    var dataArray = {};
+    var data = localStorage.getItem("try5");
+    if (data) dataArray = JSON.parse(data);
+    else {
+        dataArray.speed = [];
+        dataArray.date = [];
+        dataArray.gspeed = [];
+        dataArray.err = [];
+        dataArray.text = [];
+    }
+
+    if (typeof _gwpm !== "undefined" && _gwpm && _gwpm > 0) {
+        console.log("push new data!!!")
+        dataArray.speed.push(parseInt(_nwpm));
+        dataArray.date.push(parseInt(_date));
+        dataArray.gspeed.push(parseInt(_gwpm));
+        dataArray.err.push(parseInt(_err));
+        dataArray.text.push(getTextLabel(_textfile));
+    }
+
+    //console.log(dataArray);
+
+    localStorage.setItem("try5", JSON.stringify(dataArray));
+
+    var outputDate = [];
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var curDate = new Date();
+    for (var i = 0; i < dataArray.date.length; i++) {
+        var str = "";
+        var arrDate = new Date();
+        arrDate.setTime(dataArray.date[i]);
+
+        if (
+            curDate.getFullYear() == arrDate.getFullYear() &&
+            curDate.getMonth() == arrDate.getMonth() &&
+            curDate.getDate() == arrDate.getDate()
+        ) {
+            //show time
+            var hours = arrDate.getHours();
+            var minutes = arrDate.getMinutes();
+            var ampm = hours >= 12 ? "pm" : "am";
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            str = hours + ":" + minutes + " " + ampm;
+        } else {
+            // show month/day
+            var day = arrDate.getDate();
+            day = day < 10 ? "0" + day : day;
+            str = months[arrDate.getMonth()] + " " + day;
+        }
+        outputDate.push(str);
+    }
+
+    dataArray.date = outputDate;
+
+    _isSaveTry = true;
+    _dataTryArray = dataArray;
+
+    return _dataTryArray;
+}
+
+function initChart() {
+    let dataArray = saveTry();
+
+    initColors();
+
+    //fill arrays that depend of screen size
+    fillSizeArrays();
+
+    var arr = {};
+
+    if (dataArray.speed.length > _dataCnt) {
+        arr.speed = dataArray.speed.slice(-_dataCnt);
+        arr.date = dataArray.date.slice(-_dataCnt);
+        arr.gspeed = dataArray.gspeed.slice(-_dataCnt);
+        arr.err = dataArray.err.slice(- _dataCnt);
+        arr.text = dataArray.text.slice(-_dataCnt);
+    } else {
+        arr.speed = dataArray.speed;
+        arr.date = dataArray.date;
+        arr.gspeed = dataArray.gspeed;
+        arr.err = dataArray.err;
+        arr.text = dataArray.text;
+    }
+
+    //detect best result
+    //if (dataArray.speed.length > 5)
+    {
+        var bestVal = -1;
+        var bestIdx = -1;
+        for (var i = 0; i < dataArray.speed.length; i++) {
+            if (dataArray.speed[i] >= bestVal) {
+                bestVal = dataArray.speed[i];
+                bestIdx = i;
+            }
+        }
+
+        _bestIdx = bestIdx;
+
+        if (dataArray.speed.length >= _dataCnt) {
+            if (bestIdx < dataArray.speed.length - _dataCnt) {
+                arr.speed[0] = dataArray.speed[bestIdx];
+                arr.date[0] = [dataArray.date[0], ""];
+                arr.gspeed[0] = dataArray.gspeed[bestIdx];
+                arr.err[0] = dataArray.err[bestIdx];
+                arr.text[0] = dataArray.text[bestIdx];
+                _bestIdx = 0;
+            } else {
+                arr.date[bestIdx - dataArray.speed.length + _dataCnt] = [dataArray.date[bestIdx], ""];
+                _bestIdx = bestIdx - dataArray.speed.length + _dataCnt;
+            }
+        } else {
+            if (arr.date.length > 1) arr.date[bestIdx] = [dataArray.date[bestIdx], ""];
+        }
+    }
+
+    var ctx = document.getElementById("graph").getContext("2d");
+
+    var greenGradient = ctx.createLinearGradient(0, 0, 0, 200);
+    greenGradient.addColorStop(1, _boxColor);
+
+    var blueGradient = ctx.createLinearGradient(0, 0, 0, 110);
+    blueGradient.addColorStop(0, "#808080");
+    blueGradient.addColorStop(1, "#C8C8C8");
+
+    var backGradient = ctx.createLinearGradient(0, 0, 0, 110);
+    backGradient.addColorStop(1, 'rgb(0, 0, 0, 0)');
+    //backGradient.addColorStop(1, '#ff000000');
+
+    new Chart(ctx, createConfig(arr, greenGradient, blueGradient, backGradient));
+}
+
+function getWidth() {
+    return Math.max(
+      document.body.scrollWidth,
+      document.documentElement.scrollWidth,
+      document.body.offsetWidth,
+      document.documentElement.offsetWidth,
+      document.documentElement.clientWidth
+    );
+  }
+
+  function fillSizeArrays(){
+    _screenW = getWidth();
+
+    console.log("elem width: " + _screenW);
+
+    _dataCnt = 8;
+    _x2Axe = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+    _x2Min = 15;
+    _x2Max = 17;
+    if (_screenW <= 1500){
+        _dataCnt = 6;
+        _x2Axe = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+        _x2Min = 12;
+        _x2Max = 14;
+    }
+    if (_screenW <= 1196){
+        _dataCnt = 8;
+        _x2Axe = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+        _x2Min = 15;
+        _x2Max = 17;
+    }
+    if (_screenW < 920){
+        _dataCnt = 7;
+        _x2Axe = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+        _x2Min = 14;
+        _x2Max = 16;
+    }
+    if (_screenW <= 860){
+        _dataCnt = 6;
+        _x2Axe = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+        _x2Min = 12;
+        _x2Max = 14;
+    }
+    if (_screenW < 808){
+        _dataCnt = 8;
+        _x2Axe = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+        _x2Min = 15;
+        _x2Max = 17;
+    }
+
+    if (_screenW < 578){
+        _dataCnt = 7;
+        _x2Axe = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+        _x2Min = 14;
+        _x2Max = 16;
+    }
+
+    if (_screenW < 519){
+        _dataCnt = 6;
+        _x2Axe = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+        _x2Min = 12;
+        _x2Max = 14;
+    }
+
+    //hide pro-slow on _proHide = 450
+    if (_screenW < 410){
+        _dataCnt = 5;
+        _x2Axe = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+        _x2Min = 12;
+        _x2Max = 14;
+    }
+
+  }

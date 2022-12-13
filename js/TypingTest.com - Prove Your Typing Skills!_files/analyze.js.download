@@ -1,0 +1,423 @@
+"use strict";
+
+const RED_LIMIT = 80;
+const YELLOW_LIMIT = 95;
+
+function getWidth() {
+    return Math.max(
+      document.body.scrollWidth,
+      document.documentElement.scrollWidth,
+      document.body.offsetWidth,
+      document.documentElement.offsetWidth,
+      document.documentElement.clientWidth
+    );
+  }
+
+
+class AnalyzeVerb {
+    constructor(eNumStore, totalStore) {
+        this.eVerbs = [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "w",
+            "x",
+            "y",
+            "z",
+        ];
+        this.eNum = [];
+        this.eTotal = [];
+        for (let i = 0; i < this.eVerbs.length; i++) {
+            this.eNum.push(0);
+            this.eTotal.push(0);
+        }
+
+        let temp;
+        if (localStorage.getItem(eNumStore)) {
+            temp = JSON.parse(localStorage.getItem(eNumStore));
+            if (temp != null && temp.length == this.eVerbs.length) {
+                this.eNum = temp;
+            }
+        }
+        if (localStorage.getItem(totalStore)) {
+            temp = JSON.parse(localStorage.getItem(totalStore));
+            if (temp != null && temp.length == this.eVerbs.length) {
+                this.eTotal = temp;
+            }
+        }
+
+        this.eScore = this.calcScore();
+        this.trickyNum = this.getTrickyNum();
+
+        this.screenW = getWidth();
+    }
+
+    calcScore() {
+        let prc = [];
+
+        for (let i = 0; i < this.eVerbs.length; i++) {
+            let totalNum = this.eTotal[i];
+            let errNum = this.eNum[i];
+            let score = 0;
+
+            if (totalNum > 0) {
+                score = errNum / totalNum;
+            }
+
+            let rightNum = totalNum - errNum;
+
+            //if (rightNum >=5 )
+            {
+                prc.push({
+                    verb: this.eVerbs[i],
+                    score: score,
+                    correct: rightNum,
+                    total: totalNum,
+                    prc: 100 - score * 100,
+                });
+            }
+        }
+
+        //fill test data
+        /* 
+        prc[10].correct = 10;
+        prc[10].prc = 60;
+        prc[10].score = 5;
+        prc[10].total = 20;
+
+        prc[0].correct = 10;
+        prc[0].prc = 90;
+        prc[0].score = 5;
+        prc[0].total = 20;
+
+        prc[5].correct = 10;
+        prc[5].prc = 96;
+        prc[5].score = 5;
+        prc[5].total = 20;
+        /**/
+
+        prc = prc.sort(function (a, b) {
+            if (a.correct < 5) {
+                if (a.correct == 0) {
+                    if (b.correct == 0) {
+                        if (a.verb < b.verb) return -1;
+                        else return 1;
+                        //return (a.verb > b.verb);
+                    } else {
+                        return 1;
+                    }
+                }
+                if (b.correct == 0) {
+                    return -1;
+                }
+                if (b.correct < 5) {
+                    if (a.verb < b.verb) return -1;
+                    else return 1;
+                } else {
+                    return 1;
+                }
+            }
+            if (b.correct < 5) {
+                return -1;
+            }
+            return a.prc - b.prc;
+        });
+        return prc;
+    }
+
+    writeScoreLink(verb) {
+        /*var file = "aesop.txt";
+        var temp = "ijklmnopqr";
+        if (temp.indexOf(verb) >= 0) file = "tiger.txt";
+
+        temp = "stuvwxyz";
+        if (temp.indexOf(verb) >= 0) file = "zebra.txt";
+        */
+
+        let file = "letter";
+        file += verb.toUpperCase();
+        file += ".txt";
+
+        return  PRACTICE_URL + "?minutes=1&mode=sent&result_url=" + ANALYZE_URL + "&textfile=" + file + "&letter=" + verb;
+    }
+
+    getAnalyzeColor(num) {
+        let color = "#FD889F";
+
+        if (num >= RED_LIMIT) {
+            color = "#FFF29A";
+        }
+
+        if (num >= YELLOW_LIMIT) {
+            color = "#64EACB";
+        }
+
+        return color;
+    }
+
+    getAnalyzeClass(num) {
+        let cls = "back-red";
+
+        if (num >= RED_LIMIT) {
+            cls = "back-yellow";
+        }
+
+        if (num >= YELLOW_LIMIT) {
+            cls = "back-green";
+        }
+
+        return cls;
+    }
+
+    getAnalyzeBorderClass(prc, pressed) {
+        let cls = "border-red";
+
+        if (prc >= RED_LIMIT) {
+            cls = "border-yellow";
+        }
+
+        if (prc >= YELLOW_LIMIT) {
+            cls = "border-green";
+        }
+
+        if (pressed < 5){
+            cls = "border-grey";
+        }
+
+        return cls;
+    }
+
+    getPie(num, pressed) {
+        let str = "";
+
+        let cls = this.getAnalyzeClass(num);
+        let color = this.getAnalyzeColor(num);
+
+        let backColor = "#82888a";
+        if (this.screenW <= 800){
+            backColor = "#5B6366";
+        }
+
+        //white color for white theme
+        if (_theme === "light"){
+            backColor = "#fff";
+        }
+
+        if (num == 0) {
+            str = '<pie style="background-color: ' + backColor + ';"> </pie>';
+        }
+
+        if (num > 0 && num < 50) {
+            let deg = Math.round((90 * num) / 25 + 90);
+            str =
+                '<pie style=" background-image: linear-gradient(' +
+                deg +
+                'deg, transparent 50%, ' + backColor + ' 50%),linear-gradient(90deg, ' + backColor + ' 50%, transparent 50%);" class="' +
+                cls +
+                '"></pie>';
+        }
+
+        if (num == 50) {
+            str =
+                '<pie style="background-image:linear-gradient(90deg, ' + backColor + ' 50%, transparent 50%);" class="' +
+                cls +
+                '"> </pie>';
+        }
+
+        if (num > 50 && num < 100) {
+            let deg = Math.round((90 * (num - 50)) / 25 + 90);
+            str =
+                '<pie style="background-image:linear-gradient(' +
+                deg +
+                "deg, transparent 50%, " +
+                color +
+                ' 50%),linear-gradient(90deg, ' + backColor + ' 50%, transparent 50%);" class="' +
+                cls +
+                '"> </pie>';
+        }
+
+        if (num == 100) {
+            str = '<pie style=" background-image: none;" class="' + cls + '"> </pie>';
+        }
+
+        if (pressed < 5) {
+            str = "<pie class='back-grey'> </pie>";
+        }
+
+        // str += "<pie style=\"\"> </pie>";
+        return str;
+    }
+
+    getAnalyzePercent(num, pressed) {
+        let str = '<p class="percent">' + num + "<span>%</span></p>";
+        if (pressed < 5) {
+            return "";
+        }
+        return str;
+    }
+
+    getAnalyzePressed(num) {
+        let str = "<span>x</span>" + num;
+
+        if (num < 5 && num > 0) {
+            str = "<5";
+        }
+        if (num == 0) {
+            str = "0";
+        }
+
+        return '<p class="pressed">' + str + "</p>";
+    }
+
+    getAnalyzePracticeBtn(letter) {
+        let link = this.writeScoreLink(letter);
+        let str = '<a href="' + link + '" class="practice-button over-anim">Practice</a>';
+        return str;
+    }
+
+    getAnalyzeRow(name, num, isDisplay, isPage) {
+        let addCls = "";
+        if (!isDisplay) {
+            addCls = "verb-button-container-hidden";
+        }
+
+        let prc = Math.round(this.eScore[num].prc);
+        let letter = this.eScore[num].verb;
+        let pressed = this.eScore[num].correct;
+
+        let str = "";
+        str += '<div id="' + name + '" class="verb-button-container ' + addCls + ' ">';
+        str += this.getAnalyzeVerb(num, isPage, prc, pressed);
+
+        str += '<div class="verb-chart">';
+        str += '<div class="move-elem">'
+        str += this.getPie(prc, pressed);
+        str += this.getAnalyzePercent(prc, pressed);
+        str += "</div>\n"
+        str += this.getAnalyzePressed(pressed);
+        str += this.getAnalyzePracticeBtn(letter);
+
+        str += "</div>\n" + "</div>";
+
+        return str;
+    }
+
+    getTrickyNum() {
+        let num = 0;
+
+        for (let i = 0; i < this.eScore.length; i++) {
+            if (this.eScore[i].correct >= 5 && this.eScore[i].prc <= YELLOW_LIMIT) {
+                num++;
+            }
+        }
+
+        return num;
+    }
+
+    getYellowVerb(verb, last_cls) {
+        let str = "";
+
+        let cls = "verb-button verb-button-graph";
+        if (last_cls) {
+            cls += " " + last_cls;
+        }
+
+        str += '<div class="' + cls + '">\n' + '<div class="symbol-graph symbol">';
+
+        str += '<i class="fa fa-exclamation-circle fa-lg alert alert-yellow" aria-hidden="true"></i>';
+
+        str += "<span>" + verb + "</span>";
+
+        str += "</div>\n" + "</div>";
+        return str;
+    }
+
+    getRedVerb(verb) {
+        let str = "";
+
+        str += '<div class="verb-button">\n' + `<div class="symbol" style='margin-top: 10px;margin-left: 1px'>`;
+        str += '<i class="fa fa-exclamation-circle fa-lg alert alert-red" aria-hidden="true"></i>';
+
+        str += "<span>" + verb + "</span>";
+
+        str += "</div>\n" + "</div>";
+        return str;
+    }
+
+    getAnalyzeVerb(num, isPage, prc, pressed) {
+        let str = "";
+
+        let addBtnCls = " verb-button-graph ";
+        let addDivCls = " symbol-graph ";
+
+        if (isPage) {
+            addBtnCls = " ";
+            addDivCls = " ";
+        }
+
+        addBtnCls += this.getAnalyzeBorderClass(prc, pressed);
+
+        str += '<div class="verb-button' + addBtnCls + '">\n' + '<div class="' + addDivCls + ' symbol">';
+
+        if (this.eScore[num].correct < 5) {
+            str += '<i class="fa fa-exclamation-circle fa-lg alert alert-grey" aria-hidden="true"></i>';
+        } else {
+            if (this.eScore[num].prc < RED_LIMIT) {
+                str += '<i class="fa fa-exclamation-circle fa-lg alert fa-stack-2x alert-red" aria-hidden="true"></i>';
+            }
+            if (this.eScore[num].prc >= RED_LIMIT && this.eScore[num].prc < YELLOW_LIMIT) {
+                str += '<i class="fa fa-exclamation-circle fa-lg alert alert-yellow" aria-hidden="true"></i>';
+            }
+
+            if (this.eScore[num].prc >= YELLOW_LIMIT) {
+                str += '<i class="fa fa-exclamation-circle fa-lg alert alert-grey" aria-hidden="true"></i>';
+            }
+        }
+
+        str += "<span>" + this.eScore[num].verb + "</span>";
+
+        str += "</div>\n" + "</div>";
+        return str;
+    }
+
+    getRedNum() {
+        let num = 0;
+
+        for (let i = 0; i < this.eScore.length; i++) {
+            if (this.eScore[i].correct >= 5 && this.eScore[i].prc < RED_LIMIT) {
+                num++;
+            }
+        }
+        return num;
+    }
+
+    getYellowNum() {
+        let num = 0;
+
+        for (let i = 0; i < this.eScore.length; i++) {
+            if (this.eScore[i].correct >= 5 && this.eScore[i].prc >= RED_LIMIT && this.eScore[i].prc <= YELLOW_LIMIT) {
+                num++;
+            }
+        }
+        return num;
+    }
+}

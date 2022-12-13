@@ -1,0 +1,460 @@
+@import url("../css/main.css");
+
+.bench .content .primary-content .central-area {
+    background: transparent linear-gradient(180deg, #FFFFFF40 0%, #FFFFFF1F 100%) 0% 0% no-repeat padding-box;
+    box-shadow: 0px 0px 7px #00000029;
+    border: 1px solid #FFFFFF7D;
+}
+
+.bench .content .primary-content .central-area .start-btn {
+    text-align: center;
+}
+
+.bench .content .primary-content .central-area .close-btn {
+    text-align: center;
+    position: absolute;
+    top: 0px;
+    right: 20px;
+    width: 106px;
+}
+
+.bench .central-area .top-tile {
+    display: flex;
+    color: var(--font-color);
+    background: var(--bench-canvas-back);
+    border: var(--bench-canvas-border);
+    border-radius: 10px;
+    margin: 10px 20px;
+    width: 100%;
+}
+
+.bench .central-area .top-tile .libra {
+    background: url('../img/libra_bench.svg');
+    width: 115px;
+    height: 115px;
+    margin: 20px;
+}
+
+.bench .central-area .top-tile h2 {
+    font-family: Flexo-BoldIt, Arial, Tahoma, sans-serif;
+    font-size: 30px;
+    color: var(--font-menu);
+}
+
+.bench .central-area .top-tile p {
+    font-size: 16px;
+}
+
+.bench .content .primary-content .central-area .top-tile .start-btn {
+    margin: auto 50px auto auto;
+}
+
+.bench .mobile-buttons {
+    display: none;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.bench .central-area .point {
+    width: 100%;
+    display: block;
+}
+
+.bench .central-area .point hr {
+    border: var(--bench-hr);
+    margin: -10px 20px 10px;
+}
+
+.bench .central-area .point h2 {
+    font-family: Flexo-BoldIt, Arial, Tahoma, sans-serif;
+    font-size: 30px;
+    color: var(--font-menu);
+    text-align: center;
+}
+
+.bench .point .point-item {
+    display: flex;
+    margin: 20px 0;
+}
+
+.bench .point .point-icon {
+    margin: 50px 20px 0 20px;
+    width: 152px;
+    height: auto;
+}
+
+.bench .point .score {
+    margin: 0 auto;
+    background-size: 100%;
+    display: flex;
+    justify-content: space-between;
+    width: 500px;
+}
+
+.bench .point .col {
+    display: inline-block;
+    width: 95px;
+    height: 100%;
+    text-align: center;
+    overflow: hidden;
+    padding-top: 8px;
+    color: #234867;
+}
+
+.bench .point .score .col .headline {
+    font-size: 14px;
+    display: block;
+    height: 20px;
+    color: var(--font-color);
+}
+
+.bench .point .score .col .blue-dotted-circle {
+    margin: 5px auto;
+    width: 95px;
+    height: 95px;
+    border: 3px dashed #34DEFF;
+    border-color: var(--bench-blue-border);
+    color: var(--bench-blue-color);
+    text-shadow: var(--bench-tile-text-shadow);
+    border-radius: 50%;
+}
+
+.bench .point .score .col .blue-solid-circle {
+    border: 3px solid #34DEFF;
+    border-color: var(--bench-blue-border);
+}
+
+.bench .point .score .col .blue-dark{
+    color: var(--bench-blue-color-dark);
+}
+
+.bench .point .score .col .green-circle {
+    border-color: #03FFC4;
+}
+
+.bench .point .score .col .green-dark{
+    color: var(--bench-green-color-dark);
+}
+
+.bench .point .score .col .amount {
+    font-family: Flexo-BoldIt, Arial, Tahoma, sans-serif;
+    font-size: 38px;
+    display: block;
+    margin-top: 14px;
+}
+
+.bench .point .score .col .meta {
+    font-size: 14px;
+    display: block;
+    margin: 0;
+    text-shadow: none;
+    margin-top: -3px;
+}
+
+.bench .point .point-descr {
+    width: 130px;
+    font-size: 14px;
+    text-align: left;
+    margin: 53px auto 0;
+    color: var(--font-menu);
+}
+
+.bench .point .mobile {
+    display: none;
+}
+
+.bench .point .score i {
+    margin: 55px 0 0;
+    color: var(--bench-compare-i);
+}
+
+.bench .point .point-result-container {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.bench .point .point-result-container .point-result:first-child {
+    margin-left: 235px;
+}
+
+.bench .point .point-result-container .point-result:nth-child(2) {
+    margin-left: 67px;
+}
+
+.bench .point .point-result-container .point-result:last-child {
+    margin-left: 75px;
+}
+
+.bench .point .point-result {
+    height: 74px;
+    font-family: Flexo-BoldIt, Arial, Tahoma, sans-serif;
+    font-size: 32px;
+    padding-top: 1px;
+    background: var(--bench-result-back);
+    margin: 15px auto;
+    width: 100%;
+    max-width: 108px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    color: var(--font-color);
+}
+
+.bench .point .point-result span {
+    display: block;
+    text-align: center;
+    margin-top: 24px;
+    text-shadow: var(--bench-tile-text-shadow)
+}
+
+.bench .point .point-result span font {
+    font-size: 18px;
+    margin-left: -6px;
+}
+
+.bench .point .green-color {
+    color: #41E4BE;
+}
+
+.bench .point .red-color {
+    color: #FA8199;
+}
+
+.bench .bench-test {
+    position: relative;
+    background-image: url(../img/benchmark_back_2.png);
+    width: 765px;
+    height: 464px;
+    background-size: cover;
+    margin: 0 auto 60px auto;
+}
+
+.bench .bench-test .test-icon {
+    position: relative;
+    top: 116px;
+    left: 232px;
+    width: 115px;
+    height: 113px;
+    z-index: 2;
+    background: url(../img/pointer-average.png);
+}
+
+.bench .bench-legend {
+    display: flex;
+    margin: 30px 0 10px;
+    justify-content: right;
+    float: right;
+    color: var(--bench-legend-color);
+    font-size: 16px;
+    position: relative;
+    top: 340px;
+}
+
+.bench .bench-legend .icon-man{
+    width: 11px; 
+    height:31px; 
+    margin-top: -7px;
+    background: var(--bench-iconman);
+}
+
+.bench .bench-legend span {
+    margin: 0 15px 0 5px;
+    font-family: Roboto, Arial, Tahoma, sans-serif;
+}
+
+.bench .bench-buttons {
+    display: flex;
+    position: relative;
+    top: 20px;
+    margin: 0 auto;
+}
+
+.bench .bench-buttons-mobile{
+    display: none;
+    margin: 10px auto 40px;
+}
+
+.bench .bench-test .test-point {
+    position: absolute;
+    z-index: 3;
+}
+
+.bench .bench-test .test-point-bottom {
+    background: transparent url(../img/Pointer-accuracy-down.png);
+    background-size: contain;
+    width: 57px;
+    height: 47px;
+}
+
+.bench .bench-test .test-point span {
+    font-family: Flexo-BoldIt, Arial, Tahoma, sans-serif;
+    text-align: center;
+    font-size: 20px;
+    color: #fff;
+    display: block;
+    margin-top: 5px;
+    z-index: 2;
+    position: relative;
+}
+
+.bench .bench-test .test-point-bottom span {
+    margin-top: 8px;
+}
+
+.bench .bench-test .test-point-normal {
+    width: 57px;
+    height: 38px;
+    background: #15c39a 0% 0% no-repeat padding-box;
+    border: 2px solid #FFFFFF;
+    box-shadow: 3px 3px 6px #00000029;
+    border-radius: 5px;
+}
+
+.bench .bench-test .pointer-you {
+    position: absolute;
+    z-index: 2;
+    margin-top: -4px;
+}
+
+.bench .bench-test .pointer-you-down {
+    width: 36px;
+    height: 68px;
+    background: transparent url(../img/Pointer-you-down.png) 0% 0% no-repeat padding-box;
+    background-size: auto;
+    background-size: cover;
+    margin-top: -30px;
+    margin-left: 10px;
+}
+
+.bench .bench-test .pointer-you-normal {
+    width: 114px;
+    height: 117px;
+    background: transparent url(../img/Pointer-you-top.png) 0% 0% no-repeat padding-box;
+    background-size: auto;
+    background-size: cover;
+    margin-top: -70px;
+}
+
+.bench .bench-test .line {
+    border: 3px solid #15c39a;
+    position: absolute;
+    margin-top: 15px;
+    margin-left: 20px;
+    z-index: 2;
+}
+
+.bench .bench-footer {
+    display: flex;
+    border: 1px solid #FFFFFF;
+    border-radius: 10px;
+    color: var(--font-color);
+    border-color: var(--font-color);
+    font-family: Roboto, Arial, Tahoma, sans-serif;
+    font-size: 16px;
+    padding: 20px;
+    margin: 60px 0px 0;
+}
+
+.bench .bench-footer span {
+    margin: auto 0 auto 20px;
+}
+
+/*
+
+@media (max-width:1500px) {
+    .bench .point .point-result-container .point-result:first-child {
+        margin-left: 210px;
+    }
+}
+*/
+
+@media (max-width:1196px) {
+    .bench .content .primary-content .central-area {
+        border: none;
+        background: none;
+        box-shadow: none;
+    }
+    /*
+    .bench .point .point-result-container .point-result:first-child {
+        margin-left: 235px;
+    }
+    */
+}
+
+/*
+@media (max-width:950px) {
+    .bench .point .point-result-container .point-result:first-child {
+        margin-left: 25%;
+    }
+}
+*/
+
+@media (max-width:789px) {
+    .bench .central-area .top-tile .libra {
+        display: none;
+    }
+    .bench .central-area .top-tile .text-container {
+        width: 100%;
+        text-align: center;
+    }
+    .bench .central-area .bench-test-content {
+        display: none;
+    }
+}
+
+@media (max-width:700px) {
+    .bench .point .point-item {
+        flex-wrap: wrap;
+    }
+    .bench .point .desktop {
+        display: none;
+    }
+    .bench .point .mobile {
+        display: block;
+    }
+    .bench .point .point-item .point-icon {
+        display: flex;
+        width: 500px;
+        margin: 0 auto;
+    }
+    .bench .point .point-item .point-icon img {
+        height: 62px;
+    }
+    .bench .point .point-item .point-icon .point-descr {
+        margin: 0 0 0 40px;
+    }
+}
+
+@media (max-width:580px) {
+    .bench .content .primary-content .central-area .close-btn {
+        display: none;
+    }
+    .bench .content .primary-content .central-area .top-tile .start-btn {
+        display: none;
+    }
+    .bench .mobile-buttons {
+        display: flex;
+    }
+    .bench .desktop-buttons {
+        display: none;
+    }
+
+    .bench .bench-footer {
+        margin-top: 0px;
+    }
+}
+
+@media (max-width:440px) {
+    .bench .content .primary-content .central-area .close-btn {
+        display: none;
+    }
+
+    .bench .central-area .top-tile br{
+        display: none;
+    }
+
+
+    .bench .bench-buttons .blue-btn {
+        margin-left: -10px;
+        width: 100px !important;
+    }
+}
