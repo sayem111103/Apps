@@ -1,187 +1,4 @@
-@media( max-width: 320px ){
-    .navbar {
-        padding: 10px 0;
-        position: sticky;
-        background-color: #111111;
-    }
-
-    .navbar .nav-pills .nav-link{
-        transition: all linear .3s;
-    }
-
-    .navbar .nav-pills .nav-link:hover {
-        color: #4c76ff;
-    }
-
-    .nav {
-        display: block;
-    }
-
-    .navbar .nav-pills .nav-link.active::after {
-        display: none;
-    }
-
-    .navbar .nav-item:hover .nav-link::after {
-        width: 0;
-    }
-
-    .navbar .nav-item {
-        text-align: center;
-    }
-
-    #banner .banner-item .banner-img .overlay .ban-img2 {
-        display: none;
-    }
-
-    #banner .banner-item .banner-img .overlay .ban-txt {
-        margin-top: 20px;
-        margin-left: 0px;
-        text-align: center;
-    }
-
-    #banner .banner-item .banner-img .overlay .ban-txt h1 {
-        font-size: 25px;
-        padding-bottom: 0px;
-    }
-
-    #banner .banner-item .banner-img .overlay .ban-txt h2 {
-        font-size: 16px;
-        margin-top: 20px;
-    }
-
-    #banner .banner-item .banner-img .overlay .ban-txt p {
-        font-size: 18px;
-        padding-top: 10px;
-        padding-bottom: 0px;
-    }
-
-    #feature {
-        padding-top: 70px;
-        padding-bottom: 0px;
-    }
-
-    #feature .second-feature .second-feature-para p {
-        font-size: 13px;
-        padding-top: 30px;
-        padding-bottom: 0;
-        padding-left: 0px;
-        padding-right: 0px;
-        line-height: 20px;
-    }
-
-    .header h3::after {
-        left: 30px;
-    }
-
-    .header i::after {
-        left: 38px;
-    }
-
-    .second-feature-img img{
-        width: 150px;
-    }
-
-    #feature .second-feature .second-feature-item {
-        margin-bottom: 60px;
-        margin-top: 0;
-    }
-
-    #works .works-para p {
-        font-size: 13px;
-        padding-left: 0;
-        padding-right: 0;
-        line-height: 20px;
-        margin-bottom: 0;
-    }
-
-    #works .work-img-wrapper .work-img {
-        width: 50%;
-    }
-
-    #works .work-btn {
-        margin-top: 20px;
-    }
-
-    #works .work-img-wrapper {
-        margin-top: 20px;
-        margin-bottom: 70px;
-    }
-
-    #works .work-img-wrapper .work-img .overlay .work-icon i {
-        font-size: 10px;
-    }
-
-    #works .work-img-wrapper .work-img .overlay .work-icon {
-        width: 20px;
-        height: 20px;
-        line-height: 12px;
-    }
-
-    #works .work-img-wrapper .work-img .overlay .work-text h5 {
-        font-size: 6px;
-    }
-
-    #works .work-img-wrapper .work-img .overlay .work-text p {
-        padding-top: 2px;
-        font-size: 8px;
-    }
-
-    #team .team-para p {
-        font-size: 13px;
-        padding-top: 15px;
-        padding-left: 0;
-        padding-right: 0;
-        line-height: 20px;
-        margin-bottom: 0;
-    }
-
-    .team-item{
-        margin-bottom: 40px;
-    }
-
-    #fact .header h3::after {
-        left: 30px;
-    }
-
-    #fact .header i::after {
-        left: 38px;
-    }
-
-    #discuss .discuss-right {
-        margin-top: 20px;
-        display: flex;
-        justify-content: space-around;
-    }
-
-    #discuss .discuss-para p {
-	font-size: 13px;
-	line-height: 20px;
-    }
-
-    #discuss .discuss-left-item {
-        margin-top: 50px;
-        text-align: center;
-    }
-
-    #footer .footer-left {
-        padding-left: 0px;
-        text-align: center;
-    }
-    #footer .footer-middle {
-        padding-left: 0px;
-        text-align: center;
-    }
-    #footer .footer-right {
-        padding-left: 0px;
-        text-align: center;
-    }
-
-    #footer .footer-middle form button {
-        right: 30px;
-    }
-}
-
-@media( min-width: 321px ) and ( max-width: 575.98px){
+@media ( max-width: 575.98px) {
     .navbar {
         padding: 10px 0;
         position: sticky;
@@ -258,11 +75,11 @@
     }
 
     .header h3::after {
-        left: 160px;
+        display: none;
     }
 
     .header i::after {
-        left: 38px;
+        display: none;
     }
 
     .second-feature-img img{
@@ -328,11 +145,11 @@
     }
 
     #fact .header h3::after {
-        left: 160px;
+        display: none;
     }
 
     #fact .header i::after {
-        left: 38px;
+        display: none;
     }
 
     #discuss .discuss-right {
@@ -365,7 +182,7 @@
     }
 
     #footer .footer-middle form button {
-        right: 160px;
+        right: 40px;
     }   
 }
 
